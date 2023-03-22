@@ -1,0 +1,38 @@
+{
+  "name": "CHANGE THIS : Extension boilerplate",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "description": "This extension was created with the awesome extensionizr.com",
+  "homepage_url": "http://extensionizr.com",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "service_worker": "src/bg/background.js",
+    "type": "module"
+  },
+  "permissions": ["nativeMessaging", "scripting", "activeTab"],
+  "host_permissions": ["https://chat.openai.com/*", "http://127.0.0.1/*"],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "js/jquery/jquery-3.3.1.min.js",
+        "js/jquery/jquery-ui.min.js",
+        "js/jquery/popper.min.js",
+        "bootstrap/js/bootstrap.js",
+        "src/inject/inject.js"
+      ],
+      "css": [
+        "css/fontawesome/all.css",
+        "bootstrap/css/bootstrap.css",
+        "src/inject/inject.css"
+      ]
+    }
+  ]
+}
