@@ -1,6 +1,6 @@
 var count = 0
 var stop_auto = false
-
+var usr_name = 'YC thegod'
 function creat_auto_prompt_block(){
 	// let model_list_btn = document.querySelector('[id*=headlessui-listbox-label]')
 	let model_list_btn = document.querySelector('.stretch')
@@ -86,7 +86,7 @@ var readyStateCheckInterval = setInterval(function() {
 			var observer = new MutationObserver(function(mutations) {
 				mutations.forEach(function(mutation){
 					if(mutation.addedNodes.length && mutation.addedNodes[0].previousSibling){
-						let last_elem = mutation.addedNodes[0].previousSibling.querySelectorAll('[alt="YC thegod"]')
+						let last_elem = mutation.addedNodes[0].previousSibling.querySelectorAll(`[alt="${usr_name}"]`)
 						if (last_elem.length){
 							console.log('start save QA...')
 							setTimeout(function(){
