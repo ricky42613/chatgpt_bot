@@ -1,6 +1,6 @@
 # chatgpt_bot
-Note that this version only test on chatgpt plus account.
-Professor didn't tell me that I need to share this extension to labmate, so I ignore the maintenance and user experience when I develop it. If the extension has some inconvinient part, I'm sorry about that but cannot fix it before I have oral defense.
+* Note1: This version only test on chatgpt plus account.
+* Note2: Professor didn't tell me that I need to share this extension to labmate, so I ignore the maintenance and user experience when I develop it. If the extension has some inconvinient part, I'm sorry about that but cannot fix it before I have oral defense.
 # Some part you need to modify by yourself
 * In Inject.js
   * Copy the `alt` attribute in \<img\> tag show below and Paste it to `usr_name` variable.
