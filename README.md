@@ -15,3 +15,9 @@ Note that this version only test on chatgpt plus account.
   * Click `load unpack` button and select the repo directory to load.
 * Start the python server(`server/server.py`)
 * Start to use
+## Note
+* upload format:
+`{'id1': ['sentence1', 'sentence2'], 'id2': ['sentence1', 'sentence2']}`
+  * The extension concat the sentence by `\n` for each key, and each time send the concat result for one key.
+    * Make sure that the length your concat result is not longer than the limit set by ChatGPT
+  * Message send by ChatGPT: `<your_prompt>\n<sentence1 in id1>\n<sentence2 in id1>....`
