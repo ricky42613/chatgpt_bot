@@ -1,11 +1,12 @@
 var count = 0
 var stop_auto = false
+var first_question = true
 var usr_name = 'YC thegod'
 function creat_auto_prompt_block(){
 	// let model_list_btn = document.querySelector('[id*=headlessui-listbox-label]')
 	let model_list_btn = document.querySelector('.stretch')
 
-	let default_prompt = '對每個句子參考spacy建立句法依存樹後，根據依存樹找出句子中關鍵字之間的聯結，每行輸出格式 關鍵字1 -- 聯結 -- 關鍵字2，每行用「$」結尾。'
+	let default_prompt = '從以下句子中保留屬於事件陳述句型的句子，輸出格式為1. 事件陳述句|2. 事件陳述句...以此類推。'
 
 	let modal = `
 	<button class="btn btn-primary" id="edit_row_btn">
@@ -129,20 +130,27 @@ $(document).on('click', '#start_prompt', function(){
 		for (let uuid in data) {
 			p = p.then(_ => new Promise(inner_resolve => {
 				let timer = setInterval(function(){
+					// item = data[uuid]
+					console.log(item)
 					let form_btns = document.querySelectorAll('main form button')
+					console.log(form_btns[0].textContent)
 					if (stop_auto) {
-						console.log(uuid)
 						clearInterval(timer)
 						inner_resolve()
-					}else if (!form_btns[form_btns.length-1].disabled){
-						console.log(uuid)
+					}else if (first_question || form_btns[0].textContent.indexOf('Stop')==-1){
 						clearInterval(timer)
+						first_question = false
+						// let test_sentence = `Q：${item.input} | A：${item.output}`
+						
 						let test_sentence = ''
 						data[uuid].forEach((s,idx) => {
-							test_sentence += `${idx+1}. ${s}\n`
+							sent = s.split('|', 1)[1]
+							test_sentence += `${idx+1}. ${sent}\n`
 						});
 						console.log(test_sentence)
+						form_btns[form_btns.length-1].removeAttribute('disabled')
 						if (document.querySelector('main textarea')!= null){
+							document.querySelector('main textarea').textContent = `${prompt}\r\n${test_sentence}`
 							document.querySelector('main textarea').value = `${prompt}\r\n${test_sentence}`
 							document.querySelector('main textarea').nextElementSibling.click()
 						} else {
@@ -153,6 +161,33 @@ $(document).on('click', '#start_prompt', function(){
 				}, 5000)
 			}))
 		}
+		// for (let uuid in data) {
+		// 	p = p.then(_ => new Promise(inner_resolve => {
+		// 		let timer = setInterval(function(){
+		// 			let form_btns = document.querySelectorAll('main form button')
+		// 			if (stop_auto) {
+		// 				console.log(uuid)
+		// 				clearInterval(timer)
+		// 				inner_resolve()
+		// 			}else if (!form_btns[form_btns.length-1].disabled){
+		// 				console.log(uuid)
+		// 				clearInterval(timer)
+		// 				let test_sentence = ''
+		// 				data[uuid].forEach((s,idx) => {
+		// 					test_sentence += `${idx+1}. ${s}\n`
+		// 				});
+		// 				console.log(test_sentence)
+		// 				if (document.querySelector('main textarea')!= null){
+		// 					document.querySelector('main textarea').value = `${prompt}\r\n${test_sentence}`
+		// 					document.querySelector('main textarea').nextElementSibling.click()
+		// 				} else {
+		// 					stop_auto = true
+		// 				}
+		// 				inner_resolve()
+		// 			}
+		// 		}, 5000)
+		// 	}))
+		// }
 	};
 	var input = document.querySelector('#data')
 	reader.readAsText(input.files[0]);
