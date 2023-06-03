@@ -6,7 +6,7 @@ function creat_auto_prompt_block(){
 	// let model_list_btn = document.querySelector('[id*=headlessui-listbox-label]')
 	let model_list_btn = document.querySelector('.stretch')
 
-	let default_prompt = '從以下句子中保留屬於事件陳述句型的句子，輸出格式為1. 事件陳述句|2. 事件陳述句...以此類推。'
+	let default_prompt = '從以下句子中找出屬於事件陳述句型的句子，輸出格式僅保留句子編號，並以逗號隔開。例如:1，3，6'
 
 	let modal = `
 	<button class="btn btn-primary" id="edit_row_btn">
@@ -60,7 +60,7 @@ function creat_auto_prompt_block(){
 }
  
 var QA_pair = []
-
+var last_uuid = ''
 var readyStateCheckInterval = setInterval(function() {
 	if (document.readyState === "complete") {
 		clearInterval(readyStateCheckInterval);
@@ -89,17 +89,18 @@ var readyStateCheckInterval = setInterval(function() {
 					if(mutation.addedNodes.length && mutation.addedNodes[0].previousSibling){
 						let last_elem = mutation.addedNodes[0].previousSibling.querySelectorAll(`[alt="${usr_name}"]`)
 						if (last_elem.length){
-							console.log('start save QA...')
-							setTimeout(function(){
-								let q = mutation.addedNodes[0].previousSibling.textContent
-								let a = mutation.addedNodes[0].textContent
-								QA_pair.push({'q': q, 'a': a})
-								count += 1
-								rst = {'count': count, 'msgs': QA_pair}
-								chrome.runtime.sendMessage({'type': 'save_msg', 'data': rst}, function(r){
-									console.log(rst)
-								})
-							},90000)
+							// console.log('start save QA...')
+							// setTimeout(function(){
+							// 	let q = mutation.addedNodes[0].previousSibling.textContent
+							// 	let a = mutation.addedNodes[0].textContent
+							// 	QA_pair.push({'q': q, 'a': a})
+							// 	count += 1
+							// 	let rst = {'count': count, 'msgs': QA_pair}
+							// 	console.log(rst)
+							// 	chrome.runtime.sendMessage({'type': 'save_msg', 'data': rst}, function(r){
+							// 		console.log(rst)
+							// 	})
+							// },90000)
 						}
 					}
 				})
@@ -126,28 +127,70 @@ $(document).on('click', '#start_prompt', function(){
 	reader.onload = function() {
 		var text = reader.result;
 		var data = JSON.parse(text)
-		let p = Promise.resolve();
+		var msg_que = []
 		for (let uuid in data) {
+			let test_sentence = ''
+			let idx_offset = 0 
+			data[uuid].forEach((s,idx) => {
+				let tmp = s.split('|', 2)
+				if(tmp.length > 1){
+					sent = tmp[1]
+					test_sentence += `${idx+1-idx_offset}. ${sent}\n`
+					if (test_sentence.length > 200){
+						let info = {'uuid': uuid, 'msg': test_sentence}
+						msg_que.push(info)
+						test_sentence = ''
+						idx_offset = idx+1
+					}
+				}
+			});
+			if (test_sentence.length > 0){
+				let info = {'uuid': uuid, 'msg': test_sentence}
+				msg_que.push(info)
+				test_sentence = ''
+			}
+		}
+		console.log(msg_que)
+		let p = Promise.resolve();
+		for (let idx in msg_que) {
 			p = p.then(_ => new Promise(inner_resolve => {
 				let timer = setInterval(function(){
 					// item = data[uuid]
-					console.log(item)
+					let uuid = msg_que[idx]['uuid']
+					console.log(msg_que[idx])
 					let form_btns = document.querySelectorAll('main form button')
-					console.log(form_btns[0].textContent)
+					console.log('btn:', form_btns[0].textContent)
 					if (stop_auto) {
 						clearInterval(timer)
 						inner_resolve()
 					}else if (first_question || form_btns[0].textContent.indexOf('Stop')==-1){
 						clearInterval(timer)
+						if(!first_question){
+							console.log('start save result')
+							all_dialog = document.querySelectorAll('.group')
+							q = document.querySelectorAll('.group')[all_dialog.length-2].textContent
+							a = document.querySelectorAll('.group')[all_dialog.length-1].textContent
+							QA_pair.push({'uuid': last_uuid,'q': q, 'a': a})
+							count += 1
+							let rst = {'count': count, 'msgs':  QA_pair}
+							console.log(rst)
+							chrome.runtime.sendMessage({'type': 'save_msg', 'data': rst}, function(r){
+								console.log(rst)
+							})
+						}
 						first_question = false
 						// let test_sentence = `Q：${item.input} | A：${item.output}`
-						
-						let test_sentence = ''
-						data[uuid].forEach((s,idx) => {
-							sent = s.split('|', 1)[1]
-							test_sentence += `${idx+1}. ${sent}\n`
-						});
-						console.log(test_sentence)
+						// let test_sentence = ''
+						// data[uuid].forEach((s,idx) => {
+						// 	let tmp = s.split('|', 2)
+						// 	if(tmp.length > 1){
+						// 		sent = tmp[1]
+						// 		test_sentence += `${idx+1}. ${sent}\n`
+						// 	}
+						// });
+						let test_sentence = msg_que[idx]['msg']
+						last_uuid = uuid
+						console.log('test sentence', test_sentence)
 						form_btns[form_btns.length-1].removeAttribute('disabled')
 						if (document.querySelector('main textarea')!= null){
 							document.querySelector('main textarea').textContent = `${prompt}\r\n${test_sentence}`
@@ -158,7 +201,7 @@ $(document).on('click', '#start_prompt', function(){
 						}
 						inner_resolve()
 					}
-				}, 5000)
+				}, 40000)
 			}))
 		}
 		// for (let uuid in data) {

@@ -10,6 +10,7 @@ console.log('start service')
 //example of using a message handler from the inject scripts
 chrome.runtime.onMessage.addListener(
   function(msg, sender, sendResponse) {
+    console.log(msg)
     if (msg['type'] == 'save_msg') {
       let headers = {
         "Content-Type": "application/json",
